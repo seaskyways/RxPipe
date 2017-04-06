@@ -7,27 +7,23 @@ import org.junit.Test
  */
 class RxPipeTest {
     
-    open class Person(val name: String, val age: Int)
+    data class Person(val name: String, val age: Int)
     
     class School {
-        val personPipe = pipeEndPoint<Person>(namespace = "sample_person")
-        val person by personPipe
+        val person by quickEndPipe<Person>()
     }
     
-    class WaterMelon
-    
-    val newPerson = Person(name = "Ahmad", age = 19)
-    val school = School()
     
     @Test
     fun testBasicPiping() {
-        val personPiped = newPerson.pipeStartPoint("sample_person")
+        val newPerson = Person(name = "Ahmad", age = 19)
+        newPerson.quickStartPipe(School::person)
         
-        RxPipeManager.register<Person>(personPiped)
-        RxPipeManager.register<Person>(school.personPipe)
+        val school = School()
         
         assert(newPerson == school.person)
-        print("Original person : ${newPerson.name}, transferred person : ${school.person?.name}")
+        print("Original person : $newPerson, transferred person : ${school.person}\n")
+        print("hashCode comparison : ${newPerson.hashCode()} == ${school.person?.hashCode()} => ${newPerson.hashCode() == school.person?.hashCode()}\n")
     }
     
 }

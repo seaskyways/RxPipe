@@ -25,7 +25,6 @@ object RxPipeManager : PipeManager {
         }
     }
     
-    
     @Throws(PipeNotFoundException::class)
     @Suppress("UNCHECKED_CAST")
     override fun <T> sendToPipe(namespace: String): Boolean {
@@ -34,7 +33,7 @@ object RxPipeManager : PipeManager {
         val endPoints = pipesInNamespace.filter { it.get() is PipeEndPoint<*> }
         
         if (startPoint?.get() == null) {
-            throw PipeNotFoundException("No providers for namespace found")
+            throw PipeNotFoundException("No providers for namespace '$namespace' found")
         }
         if (endPoints.isEmpty()) {
             defer(startPoint)
