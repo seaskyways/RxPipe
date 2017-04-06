@@ -31,7 +31,7 @@ fun <T> T.pipeStartPoint(namespace: String, initialVolatility: Int = 1, register
         override val namespace: String = namespace
         
         override fun provide(): Single<T> {
-            if ((mDisposed && valRef.get() != null)) {
+            if (mDisposed) {
                 throw PipeEmptyException()
             } else {
                 this.volatility--
@@ -61,7 +61,6 @@ fun <T> pipeEndPoint(namespace: String, initialVolatility: Int = 1, registerNow:
         
         override fun dispose() {
             mDisposalSubject.onComplete()
-            print("disposal subject complete : ${mDisposalSubject.hasComplete()}")
             mDisposed = true
         }
         
@@ -92,15 +91,15 @@ fun <T> pipeEndPoint(namespace: String, initialVolatility: Int = 1, registerNow:
     return pipePoint
 }
 
-class QuickEndPipe<out T> {
+class QuickEndPipe<out T>(val initialVolatility: Int) {
     private var pipeRef: SoftReference<PipeEndPoint<T>?> = SoftReference(null)
     operator fun getValue(thisRef: Any?, prop: KProperty<*>): T? {
-        return pipeRef.get()?.value ?: (pipeEndPoint<T>(prop.name).also { pipeRef = SoftReference(it) }.run { value })
+        return pipeRef.get()?.value ?: (pipeEndPoint<T>(prop.name, initialVolatility).also { pipeRef = SoftReference(it) }.run { value })
     }
 }
 
-inline fun <T> quickEndPipe() = QuickEndPipe<T>()
-fun <T> T.quickStartPipe(prop: KProperty<T>) = pipeStartPoint(prop.name)
+inline fun <T> quickEndPipe(initialVolatility: Int = 1) = QuickEndPipe<T>(initialVolatility)
+fun <T> T.quickStartPipe(prop: KProperty<T>, initialVolatility: Int = 1) = pipeStartPoint(prop.name, initialVolatility)
 
 fun <T> KProperty<T>.pipeEndPoint(volatility: Int = 1, registerNow: Boolean = true): PipeEndPoint<T>
         = pipeEndPoint(this.name, volatility, registerNow)
